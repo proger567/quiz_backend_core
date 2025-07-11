@@ -42,14 +42,14 @@ func (mw loggingSubjectsMiddleware) AddSubject(ctx context.Context, subject dto.
 	return mw.next.AddSubject(ctx, subject)
 }
 
-func (mw loggingSubjectsMiddleware) GetStatistic(ctx context.Context, userId int64) (statistic dto.Statistic, err error) {
+func (mw loggingSubjectsMiddleware) GetStatistic(ctx context.Context, userId int64, userRole dto.Role) (statistic dto.Statistic, err error) {
 	defer func(begin time.Time) {
 		mw.logger.WithFields(logrus.Fields{
 			"took":  time.Since(begin).Milliseconds(),
 			"error": err,
 		}).Info("method == GetStatistic")
 	}(time.Now())
-	return mw.next.GetStatistic(ctx, userId)
+	return mw.next.GetStatistic(ctx, userId, userRole)
 }
 
 func (mw loggingSubjectsMiddleware) UpdateSubject(ctx context.Context, subject dto.Subject) (err error) {

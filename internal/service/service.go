@@ -7,14 +7,6 @@ import (
 	"quiz_backend_core/internal/storage"
 )
 
-// TODO move to better place?
-type ContextVariables string
-
-const (
-	ContextVariablesUserID   = "user_id"
-	ContextVariablesUserRole = "user_role"
-)
-
 type Services struct {
 	Subjects  model.Subjects
 	Questions model.Questions
@@ -23,13 +15,14 @@ type Services struct {
 
 type Deps struct {
 	Storages            *storage.Storages
-	Logger              *logrus.Logger
+	Logger              *logrus.Logger //TODO interface
 	RequestCounter      metrics.Counter
 	RequestLatencyMeter metrics.Histogram
+	Notifier            model.Notifier //TODO interface
 }
 
 func NewServices(deps Deps) *Services {
-	subjects := NewSubjectsService(deps)
+	subjects := NewSubjectsService(deps) //TODO раскрыть deps для каждого сервиса
 	questions := NewQuestionsService(deps)
 	quizzes := NewQuizzesService(deps)
 	return &Services{

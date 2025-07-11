@@ -2,9 +2,7 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"log"
 	"quiz_backend_core/internal/model"
 	"quiz_backend_core/internal/storage/pg"
 )
@@ -13,13 +11,14 @@ type Storages struct {
 	Subjects  model.SubjectsStorage
 	Questions model.QuestionsStorage
 	Quizzes   model.QuizzesStorage
+
+	pool *pgxpool.Pool
 }
 
-// TODO use pool
 func NewStorages(ctx context.Context, databaseDSN string) (*Storages, error) {
 	pool, err := pgxpool.New(ctx, databaseDSN)
 	if err != nil {
-		log.Fatal(fmt.Errorf("Unable to connect to database: %v\n", err))
+		return nil, err
 	}
 
 	// TODO
@@ -31,5 +30,11 @@ func NewStorages(ctx context.Context, databaseDSN string) (*Storages, error) {
 		Subjects:  pg.NewSubjectsStorage(pool),
 		Questions: pg.NewQuestionsStorage(pool),
 		Quizzes:   pg.NewQuizzesStorage(pool),
+
+		pool: pool,
 	}, nil
+}
+
+func (s *Storages) Close() {
+	s.pool.Close()
 }

@@ -34,6 +34,7 @@ func errorEncoder(logger *logrus.Logger) func(context.Context, error, http.Respo
 	}
 }
 
+// TODO TODO TODO
 func codeFrom(err error) int {
 	switch {
 	//case errors.Is(err, dto.ErrUserNotFound):

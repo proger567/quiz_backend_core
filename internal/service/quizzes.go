@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/sirupsen/logrus"
+	"quiz_backend_core/internal/constants"
 	"quiz_backend_core/internal/dto"
 	"quiz_backend_core/internal/model"
 )
@@ -39,7 +40,7 @@ func (s quizzesService) GetQuizByID(ctx context.Context, quizID int64) (dto.Quiz
 }
 
 func (s quizzesService) AddQuiz(ctx context.Context, quiz dto.InputQuiz) (int64, error) {
-	quiz.CreatorUserID = ctx.Value(ContextVariablesUserID).(int64)
+	quiz.CreatorUserID = ctx.Value(constants.ContextVariablesUserID).(int64)
 	return s.storage.AddQuiz(ctx, quiz)
 }
 

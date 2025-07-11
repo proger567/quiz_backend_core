@@ -34,8 +34,12 @@ func (s subjectsService) AddSubject(ctx context.Context, subject dto.Subject) (i
 	return s.storage.AddSubject(ctx, subject)
 }
 
-func (s subjectsService) GetStatistic(ctx context.Context, userId int64) (dto.Statistic, error) {
-	return s.storage.GetStatistic(ctx, userId)
+func (s subjectsService) GetStatistic(ctx context.Context, userId int64, userRole dto.Role) (dto.Statistic, error) {
+	statistic, err := s.storage.GetStatistic(ctx, userId)
+	if userRole != dto.RoleAdmin && userRole != dto.RoleModerator {
+		statistic.QuestionToModerateCount = 0
+	}
+	return statistic, err
 }
 
 func (s subjectsService) UpdateSubject(ctx context.Context, subject dto.Subject) error {

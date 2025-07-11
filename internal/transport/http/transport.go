@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/proger567/quiz_backend_middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -21,14 +22,15 @@ func MakeHTTPHandler(s *service.Services, logger *logrus.Logger, cors bool) http
 	}
 
 	//if cors {
-	r.Use(accessControlMiddleware)
+	r.Use(quiz_backend_middleware.AccessControlMiddleware)
 	//}
 
-	r.Use(fillContextMiddleware)
+	r.Use(quiz_backend_middleware.FillContextMiddleware)
 
 	makeSubjectsHTTPHandler(s, r.PathPrefix("/subjects").Subrouter(), options)
 	makeQuestionsHTTPHandler(s, r.PathPrefix("/questions").Subrouter(), options)
 	makeQuizzesHTTPHandler(s, r.PathPrefix("/quizzes").Subrouter(), options)
+	//makeExamHTTPHandler(s, r.PathPrefix("/examination").Subrouter(), options)
 
 	r.Methods("GET").Path("/metrics").Handler(promhttp.Handler())
 

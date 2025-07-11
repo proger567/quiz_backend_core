@@ -45,13 +45,13 @@ func (im instrumentingSubjectsMiddleware) AddSubject(ctx context.Context, subjec
 	return
 }
 
-func (im instrumentingSubjectsMiddleware) GetStatistic(ctx context.Context, userId int64) (statistic dto.Statistic, err error) {
+func (im instrumentingSubjectsMiddleware) GetStatistic(ctx context.Context, userId int64, userRole dto.Role) (statistic dto.Statistic, err error) {
 	defer func(begin time.Time) {
 		lvs := []string{"method", "getStatistic", "error", fmt.Sprint(err != nil)}
 		im.requestCount.With(lvs...).Add(1)
 		im.requestLatency.With(lvs...).Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	statistic, err = im.next.GetStatistic(ctx, userId)
+	statistic, err = im.next.GetStatistic(ctx, userId, userRole)
 	return
 }
 

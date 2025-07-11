@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/sirupsen/logrus"
+	"quiz_backend_core/internal/constants"
 	"quiz_backend_core/internal/dto"
 	"quiz_backend_core/internal/model"
 	"quiz_backend_core/internal/service/middleware"
@@ -11,14 +12,16 @@ import (
 )
 
 type questionsService struct {
-	storage model.QuestionsStorage
-	logger  *logrus.Logger
+	storage  model.QuestionsStorage
+	logger   *logrus.Logger
+	notifier model.Notifier
 }
 
 func NewQuestionsService(deps Deps) model.Questions {
 	var svc model.Questions = questionsService{
-		storage: deps.Storages.Questions,
-		logger:  deps.Logger,
+		storage:  deps.Storages.Questions,
+		logger:   deps.Logger,
+		notifier: deps.Notifier,
 	}
 
 	// middleware services
@@ -41,8 +44,8 @@ func (s questionsService) GetQuestionStatuses(ctx context.Context) ([]dto.Questi
 }
 
 func (s questionsService) AddQuestion(ctx context.Context, question dto.InputQuestion) (int64, error) {
-	userID, ok1 := ctx.Value(ContextVariablesUserID).(int64)
-	userRole, ok2 := ctx.Value(ContextVariablesUserRole).(dto.Role) // TODO ALWAYS GOOD
+	userID, ok1 := ctx.Value(constants.ContextVariablesUserID).(int64)
+	userRole, ok2 := ctx.Value(constants.ContextVariablesUserRole).(dto.Role) // TODO ALWAYS ok (add check!)
 	if !ok1 || !ok2 {
 		return -1, errors.New("bad user id or role") //TODO
 	}
@@ -59,7 +62,23 @@ func (s questionsService) AddQuestion(ctx context.Context, question dto.InputQue
 
 	question.CreatorUserID = userID
 
-	return s.storage.AddQuestion(ctx, question)
+	id, err := s.storage.AddQuestion(ctx, question)
+	if err != nil {
+		return -1, err
+	}
+
+	if userRole != dto.RoleAdmin && userRole != dto.RoleModerator {
+		// send notifications to users about new question
+		if err = s.notifier.Notify(ctx, "role:"+dto.RoleAdmin, "AddQuestion", ""); err != nil {
+			return -1, err //TODO wrap Error?
+		}
+
+		if err = s.notifier.Notify(ctx, "role:"+dto.RoleModerator, "AddQuestion", ""); err != nil {
+			return -1, err //TODO wrap Error?
+		}
+	}
+
+	return id, nil
 }
 
 func (s questionsService) UpdateQuestionByID(ctx context.Context, questionID int64, question dto.InputQuestion) error {
@@ -67,8 +86,8 @@ func (s questionsService) UpdateQuestionByID(ctx context.Context, questionID int
 
 	//s.GetQuestions()
 
-	userID := ctx.Value(ContextVariablesUserID).(int64)
-	userRole := ctx.Value(ContextVariablesUserRole).(dto.Role)
+	userID := ctx.Value(constants.ContextVariablesUserID).(int64)
+	userRole := ctx.Value(constants.ContextVariablesUserRole).(dto.Role)
 
 	if userRole == dto.RoleAdmin || userRole == dto.RoleModerator {
 		question.StatusName = dto.QuestionStatusNameApproved

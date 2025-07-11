@@ -31,7 +31,8 @@ type PostSubjectResponse struct {
 //**********************************************************************************************************************
 
 type GetStatisticRequest struct {
-	UserId int64
+	UserId   int64
+	UserRole dto.Role
 }
 
 type GetStatisticResponse struct {
@@ -118,7 +119,7 @@ func MakeDeleteSubjectEndpoint(s model.Subjects) endpoint.Endpoint {
 func MakeGetStatisticEndpoint(s model.Subjects) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetStatisticRequest)
-		stat, err := s.GetStatistic(ctx, req.UserId)
+		stat, err := s.GetStatistic(ctx, req.UserId, req.UserRole)
 		return GetStatisticResponse{stat, err}, err
 	}
 }

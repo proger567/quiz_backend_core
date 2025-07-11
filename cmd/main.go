@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"quiz_backend_core/internal/config"
+	"quiz_backend_core/internal/notifier"
 	"quiz_backend_core/internal/service"
 	"quiz_backend_core/internal/storage"
 	transport "quiz_backend_core/internal/transport/http"
@@ -59,11 +60,11 @@ func main() {
 		cfg.DatabasePassword,
 		cfg.DatabaseName)
 
-	//storage
 	storages, err := storage.NewStorages(mainCtx, databaseDSN)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("Unable to connect to database: %v\n", err))
 	}
+	defer storages.Close()
 
 	// logger
 	logger := logrus.Logger{
@@ -72,6 +73,13 @@ func main() {
 		//ReportCaller: true,
 		Formatter: &logrus.JSONFormatter{},
 	}
+
+	//notifier
+	notifier, err := notifier.NewNotifier(cfg.NotifierHost+":"+cfg.NotifierPort, &logger)
+	if err != nil {
+		log.Fatal(fmt.Errorf("Unable to connect to notifier: %v\n", err))
+	}
+	defer notifier.Close()
 
 	// metrics
 	fieldKeys := []string{"method", "error"}
@@ -94,6 +102,7 @@ func main() {
 		RequestCounter:      requestCounter,
 		RequestLatencyMeter: requestLatencyMeter,
 		Logger:              &logger,
+		Notifier:            notifier,
 	}
 
 	s := service.NewServices(deps)

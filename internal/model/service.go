@@ -11,7 +11,7 @@ type Subjects interface {
 	UpdateSubject(ctx context.Context, subject dto.Subject) error
 	DeleteSubjectByID(ctx context.Context, id int64) error
 
-	GetStatistic(ctx context.Context, userId int64) (dto.Statistic, error)
+	GetStatistic(ctx context.Context, userId int64, userRole dto.Role) (dto.Statistic, error)
 }
 
 type Questions interface {

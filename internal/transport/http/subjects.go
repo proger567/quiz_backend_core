@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	"github.com/proger567/quiz_backend_middleware"
 	"net/http"
 	"quiz_backend_core/internal/dto"
 	"quiz_backend_core/internal/service"
@@ -61,12 +62,7 @@ func decodePostSubjectRequest(_ context.Context, r *http.Request) (interface{}, 
 		return nil, err
 	}
 
-	userId, err := strconv.ParseInt(r.Header.Get("X-User-ID"), 10, 64)
-	if err != nil {
-		return nil, err //TODO INTERNAL ERROR
-	}
-
-	subject.CreatorUserId = userId
+	subject.CreatorUserId, _ = r.Context().Value(quiz_backend_middleware.ContextVariablesUserID).(int64)
 
 	return transport.PostSubjectRequest{
 		Subject: subject,
@@ -101,12 +97,11 @@ func decodeDeleteSubjectRequest(_ context.Context, r *http.Request) (request int
 }
 
 func decodeGetStatisticRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	userId, err := strconv.ParseInt(r.Header.Get("X-User-ID"), 10, 64)
-	if err != nil {
-		return nil, err //TODO INTERNAL ERROR
-	}
+	userID, _ := r.Context().Value(quiz_backend_middleware.ContextVariablesUserID).(int64)
+	userRole, _ := r.Context().Value(quiz_backend_middleware.ContextVariablesUserRole).(string)
 
 	return transport.GetStatisticRequest{
-		UserId: userId,
+		UserId:   userID,
+		UserRole: dto.Role(userRole),
 	}, nil
 }

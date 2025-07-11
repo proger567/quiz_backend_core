@@ -16,7 +16,7 @@ var (
 	ErrSubjectNotFound      = errors.New("subject is not found")
 )
 
-// subject
+// question
 var (
 	ErrQuestionAlreadyExists = errors.New("question is already exist")
 	ErrQuestionNotFound      = errors.New("question is not found")
